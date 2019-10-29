@@ -8,6 +8,7 @@ const connectDB = require('./config/db');
 
 //Route files
 const bootcamp = require('./routes/bootcamps');
+const courses = require('./routes/courses');
 
 //setup express
 const app = express();
@@ -22,6 +23,7 @@ if (process.env.NODE_ENV === 'development') {
 
 //mount routers
 app.use('/api/v1/bootcamps', bootcamp);
+app.use('/api/v1/courses', courses);
 
 //error handler middleware comes after routes
 app.use(errorHandler);
