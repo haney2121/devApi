@@ -11,6 +11,7 @@ const fileupload = require('express-fileupload');
 //Route files
 const bootcamp = require('./routes/bootcamps');
 const courses = require('./routes/courses');
+const auth = require('./routes/Auth');
 
 //setup express
 const app = express();
@@ -32,6 +33,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 //mount routers
 app.use('/api/v1/bootcamps', bootcamp);
 app.use('/api/v1/courses', courses);
+app.use('/api/v1/auth', auth);
 
 //error handler middleware comes after routes
 app.use(errorHandler);
