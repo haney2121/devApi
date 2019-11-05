@@ -6,6 +6,7 @@ const errorHandler = require('./middleware/error');
 const morgan = require('morgan');
 const connectDB = require('./config/db');
 const fileupload = require('express-fileupload');
+const cookieParser = require('cookie-parser');
 //Middleware
 
 //Route files
@@ -18,6 +19,9 @@ const app = express();
 
 //Body Parser
 app.use(express.json());
+
+//Cookie Parser
+app.use(cookieParser());
 
 //Dev logging middleware
 if (process.env.NODE_ENV === 'development') {

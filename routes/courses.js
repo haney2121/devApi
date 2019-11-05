@@ -9,6 +9,7 @@ const {
 } = require('../controllers/courses');
 const db = require('../models/index');
 const advancedResults = require('../middleware/advancedResults');
+const { protect } = require('../middleware/auth');
 
 //allows the use of other routes to merger with this route
 const router = express.Router({ mergeParams: true });
@@ -22,11 +23,11 @@ router
     }),
     getCourses
   )
-  .post(createCourse);
+  .post(protect, createCourse);
 router
   .route('/:id')
   .get(getCourse)
-  .put(updateCourse)
-  .delete(deleteCourse);
+  .put(protect, updateCourse)
+  .delete(protect, deleteCourse);
 
 module.exports = router;

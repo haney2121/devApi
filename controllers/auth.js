@@ -9,9 +9,8 @@ exports.register = asyncHandler(async (req, res, next) => {
   const { name, email, password, role } = req.body;
   //create a user
   const user = await db.User.create({ name, email, role, password });
-  //create Token
-  const token = user.getSignedJwtToken();
-  res.status(200).json({ success: true, token });
+
+  sendTokenResponse(user, 200, res);
 });
 
 //@desc Login User
@@ -34,8 +33,32 @@ exports.login = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse(`Invalid credentials`, 401));
   }
 
-  //create Token
-  const token = user.getSignedJwtToken();
+  sendTokenResponse(user, 200, res);
+});
 
-  res.status(200).json({ success: true, token });
+//Get Token from modal, create cookie and send response
+const sendTokenResponse = (user, statusCode, res) => {
+  const token = user.getSignedJwtToken();
+  const options = {
+    expires: new Date(
+      Date.now() + process.env.JWT_COOKIE_EXPIRE * 24 * 60 * 60 * 1000
+    ),
+    httpOnly: true
+  };
+  if (process.env.NODE_ENV === 'production') {
+    options.secure = true;
+  }
+  res
+    .status(statusCode)
+    .cookie('auth.token', token, options)
+    .json({ success: true, token });
+};
+
+//@desc Get current logged in User
+//@route POST /api/v1/auth/me
+//@access Private
+
+exports.getMe = asyncHandler(async (req, res, next) => {
+  const user = await db.User.findById(req.user);
+  res.status(200).json({ success: true, data: user });
 });
