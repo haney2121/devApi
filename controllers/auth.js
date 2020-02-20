@@ -1,6 +1,8 @@
+const crypto = require('crypto');
 const db = require('../models');
 const ErrorResponse = require('../utils/errorResponse');
 const asyncHandler = require('../middleware/async');
+const sendEmail = require('../utils/sendEmail');
 
 //@desc Register User
 //@route POST /api/v1/auth/register
@@ -36,6 +38,112 @@ exports.login = asyncHandler(async (req, res, next) => {
   sendTokenResponse(user, 200, res);
 });
 
+//@desc Get current logged in User
+//@route POST /api/v1/auth/me
+//@access Private
+exports.getMe = asyncHandler(async (req, res, next) => {
+  const user = await db.User.findById(req.user);
+  res.status(200).json({ success: true, data: user });
+});
+
+//@desc Forgot Password
+//@desc POST /api/v1/auth/forgotpassword
+//@access Public
+
+exports.forgotPassword = asyncHandler(async (req, res, next) => {
+  const user = await db.User.findOne({ email: req.body.email });
+  if (!user) {
+    return next(new ErrorResponse(`No User with provided email`, 404));
+  }
+  //get reset token for url
+  const resetToken = user.getResetPasswordToken();
+  await user.save({ validateBeforeSave: false });
+  //create reset url
+  const resetUrl = `${req.protocol}://${req.get(
+    'host'
+  )}/api/v1/auth/resetpassword/${resetToken}`;
+  const message = `You are receiving this email because you (or someone else) has requested the reset of a password. Please make a PUT request to: \n\n ${resetUrl}`;
+
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: 'Password Reset Request',
+      message
+    });
+    res.status(200).json({ success: true, data: 'Email sent' });
+  } catch (err) {
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+
+    await user.save({ validateBeforeSave: false });
+
+    return next(new ErrorResponse('Email could not be sent', 500));
+  }
+});
+
+//@desc Reset Password
+//@route PUT /api/v1/auth/resetpassword/:resetToken
+//@access Public
+exports.resetPassword = asyncHandler(async (req, res, next) => {
+  // Get hashed token
+  const resetPasswordToken = crypto
+    .createHash('sha256')
+    .update(req.params.resetToken)
+    .digest('hex');
+
+  const user = await db.User.findOne({
+    resetPasswordToken,
+    resetPasswordExpire: { $gt: Date.now() }
+  });
+
+  if (!user) {
+    return next(new ErrorResponse(`Invalid Token`, 400));
+  }
+
+  //set new password
+  user.password = req.body.password;
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpire = undefined;
+  await user.save();
+
+  sendTokenResponse(user, 200, res);
+});
+
+//@desc Update user details
+//@route PUT /api/v1/auth/updatedetails
+//@access Private
+exports.updateDetails = asyncHandler(async (req, res, next) => {
+  const fieldsToUpdate = {
+    name: req.body.name,
+    email: req.body.email
+  };
+
+  const user = await db.User.findByIdAndUpdate(req.user.id, fieldsToUpdate, {
+    new: true,
+    runValidators: true
+  });
+
+  res.status(200).json({ success: true, data: user });
+});
+
+//@desc Update Password
+//@route PUT /api/v1/auth/updatepassword
+//@access Private
+exports.updatePassword = asyncHandler(async (req, res, next) => {
+  const user = await db.User.findById(req.user.id).select('+password');
+
+  //check current password
+  if (!(await user.matchPassword(req.body.currentPassword))) {
+    return next(new ErrorResponse(`Password is incorrect.`, 401));
+  }
+
+  user.password = req.body.newPassword;
+
+  await user.save();
+
+  sendTokenResponse(user, 200, res);
+});
+
 //Get Token from modal, create cookie and send response
 const sendTokenResponse = (user, statusCode, res) => {
   const token = user.getSignedJwtToken();
@@ -53,12 +161,3 @@ const sendTokenResponse = (user, statusCode, res) => {
     .cookie('auth.token', token, options)
     .json({ success: true, token });
 };
-
-//@desc Get current logged in User
-//@route POST /api/v1/auth/me
-//@access Private
-
-exports.getMe = asyncHandler(async (req, res, next) => {
-  const user = await db.User.findById(req.user);
-  res.status(200).json({ success: true, data: user });
-});

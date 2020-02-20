@@ -43,7 +43,7 @@ exports.createBootcamp = asyncHandler(async (req, res, next) => {
     );
   }
 
-  let newBootcamp = await db.BootCamp.create(req.body);
+  const newBootcamp = await db.BootCamp.create(req.body);
 
   res.status(201).json({ success: true, data: newBootcamp });
 });
@@ -52,16 +52,28 @@ exports.createBootcamp = asyncHandler(async (req, res, next) => {
 //@route PUT /api/v1/bootcamps/:id
 //@access Private
 exports.updateBootcamp = asyncHandler(async (req, res, next) => {
-  let bootcamp = await db.BootCamp.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true
-  });
+  let bootcamp = await db.BootCamp.findById(req.params.id);
+
+  if (bootcamp.user.toString() !== req.user.id && req.user.role !== 'admin') {
+    return next(
+      new ErrorResponse(
+        `You do not have permission to update this bootcamp`,
+        400
+      )
+    );
+  }
   //checking if bootcamp exist
   if (!bootcamp) {
     return next(
       new ErrorResponse(`Bootcamp not found with id of ${req.params.id}`, 404)
     );
   }
+
+  bootcamp = await db.BootCamp.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true
+  });
+
   res.status(200).json({ success: true, data: bootcamp });
 });
 
@@ -74,6 +86,15 @@ exports.deleteBootcamp = asyncHandler(async (req, res, next) => {
   if (!bootcamp) {
     return next(
       new ErrorResponse(`Bootcamp not found with id of ${req.params.id}`, 404)
+    );
+  }
+
+  if (bootcamp.user.toString() !== req.user.id && req.user.role !== 'admin') {
+    return next(
+      new ErrorResponse(
+        `You do not have permission to remove this bootcamp.`,
+        400
+      )
     );
   }
 
@@ -120,6 +141,15 @@ exports.bootcampPhotoUpload = asyncHandler(async (req, res, next) => {
   if (!bootcamp) {
     return next(
       new ErrorResponse(`Bootcamp not found with id of ${req.params.id}`, 404)
+    );
+  }
+
+  if (bootcamp.user.toString() !== req.user.id && req.user.role !== 'admin') {
+    return next(
+      new ErrorResponse(
+        `You do not have permission to update this bootcamp`,
+        400
+      )
     );
   }
 

@@ -59,6 +59,14 @@ exports.createCourse = asyncHandler(async (req, res, next) => {
       )
     );
   }
+  if (bootcamp.user.toString() !== req.user.id && req.user.role !== 'admin') {
+    return next(
+      new ErrorResponse(
+        `You do not have permission to add a course to the bootcamp: ${bootcamp._id}`,
+        400
+      )
+    );
+  }
   const course = await db.Course.create(req.body);
   res.status(200).json({
     success: true,
@@ -74,6 +82,15 @@ exports.updateCourse = asyncHandler(async (req, res, next) => {
   if (!course) {
     return next(
       new ErrorResponse(`No course with the id of ${req.params.id}`, 404)
+    );
+  }
+
+  if (course.user.toString() !== req.user.id && req.user.role !== 'admin') {
+    return next(
+      new ErrorResponse(
+        `You do not have permission to update this course.`,
+        400
+      )
     );
   }
 
@@ -96,6 +113,15 @@ exports.deleteCourse = asyncHandler(async (req, res, next) => {
   if (!course) {
     return next(
       new ErrorResponse(`No course with the id of ${req.params.id}`, 404)
+    );
+  }
+
+  if (course.user.toString() !== req.user.id && req.user.role !== 'admin') {
+    return next(
+      new ErrorResponse(
+        `You do not have permission to remove this course.`,
+        400
+      )
     );
   }
 

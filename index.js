@@ -12,7 +12,8 @@ const cookieParser = require('cookie-parser');
 //Route files
 const bootcamp = require('./routes/bootcamps');
 const courses = require('./routes/courses');
-const auth = require('./routes/Auth');
+const auth = require('./routes/auth');
+const users = require('./routes/users');
 
 //setup express
 const app = express();
@@ -38,6 +39,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/api/v1/bootcamps', bootcamp);
 app.use('/api/v1/courses', courses);
 app.use('/api/v1/auth', auth);
+app.use('/api/v1/users', users);
 
 //error handler middleware comes after routes
 app.use(errorHandler);

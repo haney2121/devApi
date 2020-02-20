@@ -13,7 +13,7 @@ const errorHandler = (err, req, res, next) => {
 
   //mongoose duplicate key
   if (err.code === 11000) {
-    let updatedError = err.errmsg.split('{ : "');
+    let updatedError = err.errmsg.split(': "');
     let rebuild = updatedError[1].split('"')[0];
 
     const message = `A record already exist with the value of ${rebuild}`;
@@ -22,7 +22,6 @@ const errorHandler = (err, req, res, next) => {
 
   //mongoose validation error
   if (err.name === 'ValidationError') {
-    const message = Object.values(err.errors).map(value => value.message);
     error = new ErrorResponse(message, 400);
   }
 
