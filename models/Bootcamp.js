@@ -44,11 +44,9 @@ const BootcampSchema = new Schema(
       type: {
         type: String,
         enum: ['Point']
-        // required: true
       },
       coordinates: {
         type: [Number],
-        // require: true,
         index: '2dsphere'
       },
       formattedAddress: String,
@@ -59,7 +57,6 @@ const BootcampSchema = new Schema(
       country: String
     },
     careers: {
-      //array of strings
       type: [String],
       required: true,
       enum: [
@@ -100,6 +97,11 @@ const BootcampSchema = new Schema(
     createdAt: {
       type: Date,
       default: Date.now
+    },
+    user: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'User',
+      required: true
     }
   },
   { toJSON: { virtuals: true }, toObject: { virtuals: true } }
