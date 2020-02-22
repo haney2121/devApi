@@ -78,7 +78,7 @@ exports.createCourse = asyncHandler(async (req, res, next) => {
 //@route PUT /api/v1/courses/:id
 //@access Private
 exports.updateCourse = asyncHandler(async (req, res, next) => {
-  let course = db.Course.findById(req.params.id);
+  let course = await db.Course.findById(req.params.id);
   if (!course) {
     return next(
       new ErrorResponse(`No course with the id of ${req.params.id}`, 404)

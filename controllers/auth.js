@@ -38,6 +38,18 @@ exports.login = asyncHandler(async (req, res, next) => {
   sendTokenResponse(user, 200, res);
 });
 
+//@desc log current logged in User out
+//@route GET /api/v1/auth/logout
+//@access Private
+exports.logout = asyncHandler(async (req, res, next) => {
+  const options = {
+    expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true
+  };
+  res.cookie('auth.token', 'none', options);
+  res.status(200).json({ success: true, data: {} });
+});
+
 //@desc Get current logged in User
 //@route POST /api/v1/auth/me
 //@access Private

@@ -30,7 +30,7 @@ const importData = async () => {
     await db.BootCamp.create(bootcamps);
     await db.Course.create(courses);
     await db.User.create(users);
-    // await db.Reviews.create(reviews);
+    await db.Review.create(reviews);
     console.log('Data Imported...'.green.inverse);
     process.exit();
   } catch (err) {
@@ -45,7 +45,7 @@ const deleteData = async () => {
     await db.BootCamp.deleteMany();
     await db.Course.deleteMany();
     await db.User.deleteMany();
-    // await db.Review.deleteMany();
+    await db.Review.deleteMany();
     console.log('Data Deleted...'.red.inverse);
     process.exit();
   } catch (err) {
